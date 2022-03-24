@@ -4,9 +4,54 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Google Sign In</title>
 </head>
 <body>
-    <h1>Acceso Denegado</h1>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+      <div id="g_id_onload"
+         data-client_id="185313956214-hmgq9ajjp7mdi5m78qlnj27g768vctdd.apps.googleusercontent.com"
+         data-callback="handleCredentialResponse"
+         data-auto_prompt="false">
+      </div>
+      <div class="g_id_signin"
+         data-type="standard"
+         data-size="large"
+         data-theme="outline"
+         data-text="sign_in_with"
+         data-shape="rectangular"
+         data-logo_alignment="left">
+      </div>
+      <button id="google_signout">
+          Sign out
+      </button>
+      <script>
+        function handleCredentialResponse(response) {
+           // decodeJwtResponse() is a custom function defined by you
+           // to decode the credential response.
+           //const responsePayload = decodeJwtResponse(response.credential);
+           fetch('http://localhost:8080/api/auth/google', {
+               method: 'POST',
+               headers: {
+                   'Content-Type':'application/json'
+               },
+               body: JSON.stringify({
+                   id_token: response.credential
+               })
+           })
+            .then(resp => resp.json())
+            .then(resp => {
+                localStorage.setItem('email', resp.usuario.correo);
+            }).catch(console.warn())
+        }
+
+        const button = document.getElementById('google_signout');
+        button.onclick = () => {
+            google.accounts.id.disableAutoSelect();
+            google.accounts.id.revoke(localStorage.getItem('email'), done => {
+                localStorage.clear();
+                location.reload();
+            })
+        }
+      </script>      
 </body>
 </html>
